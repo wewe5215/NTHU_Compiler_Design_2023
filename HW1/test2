@@ -1,0 +1,30 @@
+#pragma      source   off
+
+#pragma  token          on
+int main() {
+        /*
+        more comment
+        */ aaa // /*
+        /* // */ duck
+        +12345*/
+        -.5
+	+0
+	-0
+	-
+	0
+	.012
+	.0
+	0.0
+	0.000
+	
+        +0123.
+        case default
+                CHAR_MAX INT_MIN_BEST
+        ___ = -2131 - 8
+        "\u12ab" '\71' '\x1234567890AaBbCcDdEeFf' '\U1234AbCf' '\"' '"'
+        #pragma source on
+        //#pragma token off
+        banana
+        #pragma         token   on
+        """""";
+}

@@ -1,0 +1,15 @@
+#pragma source on
+int gcd(int a, int b) {
+    if(b == 0) {
+        return a;
+#pragma source off
+    } else {
+        return gcd(b, a%b);
+    }
+#pragma source on
+}
+
+#pragma token off
+int main() {
+#pragma token on
+}

@@ -1,0 +1,6 @@
+// this is \ 
+a test /* for 
+the comment \
+ability of your // code \
+lalala */ // keep on /* testing */ \
+hi

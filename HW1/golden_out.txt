@@ -1,0 +1,47 @@
+#key:int
+#id:main
+#punc:(
+#punc:)
+#punc:{
+#id:aaa
+#id:duck
+#integer:+12345
+#op:*
+#op:/
+#float:-.5
+#integer:+0
+#integer:-0
+#op:-
+#integer:0
+#float:.012
+#float:.0
+#float:0.0
+#float:0.000
+#float:+0123.
+#key:case
+#key:default
+#macro:CHAR_MAX
+#id:INT_MIN_BEST
+#id:___
+#op:=
+#integer:-2131
+#op:-
+#integer:8
+#string:"\u12ab"
+#char:'\71'
+#char:'\x1234567890AaBbCcDdEeFf'
+#char:'\U1234AbCf'
+#char:'\"'
+#char:'"'
+25:        #pragma source on
+26:        //#pragma token off
+#id:banana
+27:        banana
+28:        #pragma         token   on
+#string:""
+#string:""
+#string:""
+#punc:;
+29:        """""";
+#punc:}
+30:}

@@ -1,0 +1,13 @@
+int main() {
+	double a = 123E123;
+	double b = 123e123;
+	double c = 123e-123;
+	double d = 123e+123;
+	double e = 123E-123;
+	double f = 123E+123;
+	double g = 12.3e123;
+	double h = 12.3E-123;
+	double i = .3e-123;
+	double j = 1.e123;
+
+}
