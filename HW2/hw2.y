@@ -72,7 +72,7 @@ start_symbol: start_builder
             | start_symbol start_builder
             ;
 start_builder: variable_declarations
-             
+             | function
              ;
 variable_declarations: scalar_declaration ';'
                      | array_declaration ';'
@@ -125,7 +125,20 @@ array_initialize:  expr
 array_contents: array_initialize 
               | array_initialize ',' array_contents  
               ; 
-
+function: function_declarations function_definitions 
+        | function_declarations ';'
+        ;
+declarator: '*' IDENT         
+          | IDENT             
+          ;
+function_declarations: type declarator '(' parameters ')'
+                     | type declarator '(' ')'
+                     ;
+parameters: parameters ',' type declarator  
+          | type declarator 
+          ;
+function_definitions: compound_stmt
+                    ;
 /*expression*/
 expression_with_high_prec: IDENT    
     | IDENT array_remaining         
@@ -205,6 +218,67 @@ L_or_expr: L_and_expr
 expr: L_or_expr
     | L_or_expr '=' expr    
     ;
+
+/*statement*/
+compound_stmt: '{' compound_stmt_content '}'   
+             | '{' '}'    
+             ;
+compound_stmt_content: statements   
+                     | statements compound_stmt_content 
+                     | variable_declarations
+                     | variable_declarations compound_stmt_content
+                     | function_declarations  
+                     | function_declarations compound_stmt_content
+                     ;
+statements: expr_stmt
+          | if_else_stmt   
+          | switch_stmt   
+          | while_stmt     
+          | for_stmt        
+          | return_stmt   
+          | break_stmt    
+          | continue_stmt   
+          | compound_stmt 
+          ;
+expr_stmt: expr ';'                
+         ;
+if_else_stmt: IF '(' expr ')' compound_stmt 
+            | IF '(' expr ')' compound_stmt ELSE compound_stmt 
+            ;
+switch_stmt: SWITCH '(' expr ')' '{' switch_clauses '}' 
+            | SWITCH '(' expr ')' '{' '}' 
+            ;
+switch_clauses: switch_clause_content
+              | switch_clause_content switch_clauses  
+              ;
+switch_clause_content: CASE expr ':' statement_list    
+                     | CASE expr ':'
+                     | DEFAULT expr ':'
+                     | DEFAULT expr ':' statement_list
+                     ;
+statement_list: statements 
+              | statements statement_list
+              ;
+while_stmt: WHILE '(' expr ')' statements 
+          | DO statements WHILE '(' expr ')' ';' 
+          ;
+for_stmt: FOR '(' expr ';' expr ';' expr ')' statements 
+        | FOR '(' expr ';'      ';' expr ')' statements 
+        | FOR '('      ';' expr ';' expr ')' statements 
+        | FOR '(' expr ';' expr ';'      ')' statements 
+        | FOR '('      ';'      ';' expr ')' statements 
+        | FOR '(' expr ';'      ';'      ')' statements 
+        | FOR '('      ';' expr ';'      ')' statements 
+        | FOR '('      ';'      ';'      ')' statements 
+        ;
+
+return_stmt: RETURN expr ';'        
+           | RETURN ';'             
+           ;
+break_stmt: BREAK ';'               
+          ;
+continue_stmt: CONTINUE ';'         
+             ;
 %%
 int main(void) {
     yyparse();
