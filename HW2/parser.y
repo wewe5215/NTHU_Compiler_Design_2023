@@ -69,16 +69,16 @@
 %type <strVal> start_builder 
 %type <strVal> variable_declarations function
 %type <strVal> scalar_declaration array_declaration
-%type <strVal> type idents declarator initialize
-%type <strVal> arrays array_remaining array_initialize array_contents
+%type <strVal> type /*idents*/ declarator initialize
+%type <strVal> /*arrays*/ array_remaining array_initialize array_contents
 %type <strVal> function_declarations function_definitions
 %type <strVal> parameters
-%type <strVal> general_type sign_or_unsign long_or_short longs terminal_types
+%type <strVal> general_type /*sign_or_unsign long_or_short longs*/ terminal_types
 %type <strVal> expr expression_with_high_prec literal suffix_expr arguments prefix_expr unary_op 
 %type <strVal> mul_expr add_sub_expr shift_expr comparison_expr B_and_expr B_xor_expr B_or_expr L_and_expr L_or_expr
 %type <strVal> statements if_else_stmt switch_stmt while_stmt for_stmt return_stmt break_stmt continue_stmt compound_stmt
 %type <strVal> switch_clauses switch_clause_content compound_stmt_content for_content
-%type <strVal> expr_stmt initialize_idents
+%type <strVal> expr_stmt initialize_idents initialize_arrays
 %%
 //start
 start_symbol: start_builder
@@ -135,7 +135,7 @@ initialize_idents: declarator initialize    {
                                $$ = s;
                               }
                  ;
-idents: idents ',' declarator { 
+/*idents: idents ',' declarator { 
                                char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)));
                                strcpy(s, $1);
                                strcat(s, ",");
@@ -143,7 +143,7 @@ idents: idents ',' declarator {
                                $$ = s;
                               }
       | declarator            
-      ;
+      ;*/
 //pointer, non-pointer
 declarator: '*' IDENT         { 
                                char* s = malloc(sizeof(char) * (1 + strlen($2)));
@@ -163,7 +163,7 @@ initialize: /* empty */       {$$ = "";}
                                $$ = s;
                               }
           ;
-array_declaration: type arrays { 
+array_declaration: type initialize_arrays { 
                                char* s = malloc(sizeof(char) * (strlen(S_ARRAY_DECL) + strlen($1) + strlen($2) + strlen(E_ARRAY_DECL)));
                                strcpy(s, S_ARRAY_DECL);
                                strcpy(s, $1);
@@ -171,7 +171,7 @@ array_declaration: type arrays {
                                strcat(s, E_ARRAY_DECL);
                                $$ = s;
                                }
-                 | type arrays '=' array_initialize { 
+                 /*| type arrays '=' array_initialize { 
                                char* s = malloc(sizeof(char) * (strlen(S_ARRAY_DECL) + strlen($1) + strlen($2) + 1 + strlen($4) + strlen(E_ARRAY_DECL)));
                                strcpy(s, S_ARRAY_DECL);
                                strcat(s, $1);
@@ -180,9 +180,24 @@ array_declaration: type arrays {
                                strcat(s, $4);
                                strcat(s, E_ARRAY_DECL);
                                $$ = s;
-                               }
+                               }*/
                  ;
-arrays: arrays ',' declarator array_remaining { 
+initialize_arrays: declarator array_remaining array_initialize { 
+                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
+                               strcpy(s, $1);
+                               strcat(s, $2);
+                               $$ = s;
+                              }
+                | declarator array_remaining array_initialize ',' initialize_arrays { 
+                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + 1 + strlen($5)));
+                               strcpy(s, $1);
+                               strcat(s, $2);
+                               strcat(s, ",");
+                               strcat(s, $5);
+                               $$ = s;
+                              }
+                ;
+/*arrays: arrays ',' declarator array_remaining { 
                                char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3) + strlen($4)));
                                strcpy(s, $1);
                                strcat(s, ",");
@@ -196,7 +211,7 @@ arrays: arrays ',' declarator array_remaining {
                                strcat(s, $2);
                                $$ = s;
                                }
-      ;
+      ;*/
 array_remaining: '[' expr ']' { 
                                char* s = malloc(sizeof(char) * (1 + strlen(S_EXPR) + strlen($2) + strlen(E_EXPR) + 1));
                                strcpy(s, L_SQR_BRACKET);
@@ -217,15 +232,19 @@ array_remaining: '[' expr ']' {
                                $$ = s;
                                }
                ;
-array_initialize: expr  { 
-                            char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR)));
-                            strcpy(s, S_EXPR);
-                            strcat(s, $1);
-                            strcat(s, E_EXPR);
+array_initialize: /* empty */       {$$ = "";}
+                | '=' expr  { 
+                            char* s = malloc(sizeof(char) * (1 + strlen(S_EXPR) + strlen($2) + strlen(E_EXPR)));
+                               strcpy(s, "=");
+                               strcat(s, S_EXPR);
+                               strcat(s, $2);
+                               strcat(s, E_EXPR);
+                               $$ = s;
                         }
-                | '{' array_contents '}' { 
-                               char* s = malloc(sizeof(char) * (1 + strlen($2) + 1));
-                               strcpy(s, L_PARENTHESIS);
+                | '=' '{' array_contents '}' { 
+                               char* s = malloc(sizeof(char) * (1 + 1 + strlen($2) + 1));
+                               strcpy(s, "=");
+                               strcat(s, L_PARENTHESIS);
                                strcat(s, $2);
                                strcat(s, R_PARENTHESIS);
                                $$ = s;
@@ -296,54 +315,17 @@ type: general_type
     | CONST 
     ;
 //need revise
-general_type: sign_or_unsign long_or_short TYPE_INT { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
-                         }
-            | sign_or_unsign longs { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               $$ = s;
-                         }
-            | sign_or_unsign SHORT { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               $$ = s;
-                         }
-            | sign_or_unsign TYPE_CHAR { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               $$ = s;
-                         }
-            | terminal_types; 
-sign_or_unsign: /* empty */ {$$ = "";}
-              | SIGNED      
-              | UNSIGNED    
-              ;
-long_or_short: /* empty */ {$$ = "";}
-             | longs       
-             | SHORT       
-             ;
-longs: LONG LONG { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               $$ = s;
-                 }
-     | LONG      
-     ;
+general_type: terminal_types general_type; 
 //need revise!
 terminal_types: SIGNED      
-              | UNSIGNED    
+              | UNSIGNED 
+              | SHORT
+              | LONG   
               | TYPE_FLOAT  
               | TYPE_DOUBLE 
-              | TYPE_VOID   
+              | TYPE_VOID  
+              | TYPE_INT
+              | TYPE_CHAR 
               ;
 /*expression*/
 //operators
