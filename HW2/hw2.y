@@ -253,8 +253,8 @@ switch_clauses: switch_clause_content
               ;
 switch_clause_content: CASE expr ':' statement_list    
                      | CASE expr ':'
-                     | DEFAULT expr ':'
-                     | DEFAULT expr ':' statement_list
+                     | DEFAULT  ':'
+                     | DEFAULT  ':' statement_list
                      ;
 statement_list: statements 
               | statements statement_list
