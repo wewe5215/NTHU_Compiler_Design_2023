@@ -120,6 +120,15 @@ scalar_declaration: type initialize_idents {
                                $$ = s;
                                }
                   ;
+type: general_type 
+    | CONST general_type { 
+                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
+                               strcpy(s, $1);
+                               strcat(s, $2);
+                               $$ = s;
+                         }
+    | CONST 
+    ;
 initialize_idents: declarator initialize    { 
                                char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
                                strcpy(s, $1);
@@ -305,17 +314,16 @@ function_definitions: '{' '}' {
                                strcat(s, E_FUNC_DEF);
                                $$ = s;
                             }
-type: general_type 
-    | CONST general_type { 
+
+//need revise
+general_type: terminal_types general_type { 
                                char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)));
                                strcpy(s, $1);
                                strcat(s, $2);
                                $$ = s;
-                         }
-    | CONST 
-    ;
-//need revise
-general_type: terminal_types general_type; 
+                            }
+            | terminal_types
+            ; 
 //need revise!
 terminal_types: SIGNED      
               | UNSIGNED 
