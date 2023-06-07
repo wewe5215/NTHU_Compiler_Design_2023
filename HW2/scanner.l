@@ -26,149 +26,147 @@ floating ([0-9]+)\.[0-9]*|([0-9]*)\.[0-9]+
 string \"(\\.|[^"\\])*\"
 char '([^']|\\.|\\\\|\\\"|\\'|([\x20-\x7e]{-}[\\'"])|(\\[0-7]{1,3})|(\\x[a-fA-F0-9]+)|(\\u[a-fA-F0-9]{4})|(\\U[a-fA-F0-9]{8}))'
 newline \n
+%x SINGLE_LINE_COMMENT 
+%x COMMENT
 %%
+<COMMENT>\/\/ {
+    //printf("cmt//\n");
+    
+}
+\/\/ {
+    //printf("normal //\n");
+    
+    BEGIN SINGLE_LINE_COMMENT;
+}
+<SINGLE_LINE_COMMENT>\\\n {
+    
+}
+<SINGLE_LINE_COMMENT>. {
+    
+    
+}
+<SINGLE_LINE_COMMENT>\n {
+    
+    BEGIN 0;
+}
 
+"/*" {
+
+BEGIN COMMENT;
+}
+<COMMENT>"*/" {
+BEGIN 0;}
+<COMMENT>. {
+}
+<COMMENT>\n {
+}
+#pragma[ \t]+source[ \t]+on {
+}
+#pragma[ \t]+source[ \t]+off {
+}
+#pragma[ \t]+token[ \t]+on {
+}
+#pragma[ \t]+token[ \t]+off {
+}
+
+{newline} {
+    
+}
 "for"                           {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return FOR;
                                 }
 "do"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return DO;
                                 }
 "while"                         {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return WHILE;
                                 }
 "break"                         {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return BREAK;
                                 }
 "continue"                      {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return CONTINUE;
                                 }
 "if"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return IF;
                                 }
 "else"                          {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return ELSE;
                                 }
 "return"                        {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return RETURN;
                                 }
 "struct"                        {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return STRUCT;
                                 }
 "switch"                        {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return SWITCH;
                                 }
 "case"                          {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return CASE;
                                 }
 "default"                       {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return DEFAULT;
                                 }
 
 "void"                          {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return TYPE_VOID;
                                 }
 "int"                           {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return TYPE_INT;
                                 }
 "double"                        {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return TYPE_DOUBLE;
                                 }
 "float"                         {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return TYPE_FLOAT;
                                 }
 "char"                          {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return TYPE_CHAR;
                                 }
 
 "const"                         {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return CONST;
                                 }
 "signed"                        {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return SIGNED;
                                 }
 "unsigned"                      {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return UNSIGNED;
                                 }
 "short"                         {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return SHORT;
                                 }
 "long"                          {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return LONG;
                                 }
 
 "NULL"                          {yylval.strVal = "0"; return EXP_NULL;}
 
 {Identifiers}                   {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return IDENT;
                                 }
 
@@ -184,17 +182,13 @@ newline \n
                                 }
 
 {string}                        {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return STRING;
 
                                 }
 
 {char}                          {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return CHAR;
 
                                 }
@@ -202,179 +196,125 @@ newline \n
         operators
     */
 "+"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '+';
 
                                 }
 "-"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '-';
 
                                 }
 "*"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '*';
 
                                 }
 "/"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '/';
 
                                 }
 "%"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '%';
 
                                 }
 "++"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return INCREMENT;
                                 }
 "--"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return DECREMENT;
                                 }
 "<"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return LT;
                                 }
 "<="                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return LE;
                                 }
 ">"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return GT;
                                 }
 ">="                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return GE;
                                 }
 "=="                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return EQ;
                                 }
 "!="                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return N_EQ;
                                 }
 "="                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '=';
 
                                 }
 "&&"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return L_AND;
                                 }
 "||"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return L_OR;
                                 }
 "!"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '!';
 
                                 }
 "~"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '~';
 
                                 }
 "^"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '^';
 
                                 }
 "&"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '&';
 
                                 }
 "|"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '|';
 
                                 }
 ">>"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return RIGHT_SHIFT;
                                 }
 "<<"                            {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return LEFT_SHIFT;
                                 }
 "["                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '[';
 
                                 }
 "]"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return ']';
 
                                 }
 "("                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '(';
 
                                 }
 ")"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return ')';
 
                                 }
@@ -382,38 +322,31 @@ newline \n
         punctuation
     */
 ":"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return ':';
 
                                 }
 ";"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return ';';
 
                                 }
 ","                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return ',';
 
                                 }
 "{"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '{';
 
                                 }
 "}"                             {
-                                    char* dest = malloc(strlen(yytext));
-                                    if(dest != NULL) strcpy(dest, yytext);
-                                    yylval.strVal = dest;
+                                    yylval.strVal = strdup(yytext);
                                     return '}';
 
                                 }
+. {
+    
+}
 %%

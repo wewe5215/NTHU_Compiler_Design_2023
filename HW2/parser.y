@@ -36,7 +36,7 @@
         return rst;
     }
 
-    char* float_to_string(float val){
+    char* float_to_string(double val){
         char* rst = malloc(sizeof(char) * 40);
         sprintf(rst, "%f", val);
         return rst;
@@ -45,7 +45,7 @@
 
 %union{
     int intVal;
-    float floatVal;
+    double floatVal;
     char* strVal;
 }
 
@@ -206,7 +206,7 @@ scalar_initialize: '=' expr;  {
 array_declaration: type arrays { 
                                     char* s = malloc(sizeof(char) * (strlen(S_ARRAY_DECL) + strlen($1) + strlen($2) + 10));
                                     strcpy(s, S_ARRAY_DECL);
-                                    strcpy(s, $1);
+                                    strcat(s, $1);
                                     strcat(s, $2);
                                     
                                     $$ = s;
@@ -290,9 +290,9 @@ array_initialize:  expr  {
                         }
 
                 |  '{' array_contents '}'  { 
-                               char* s = malloc(sizeof(char) * (1 + strlen($1) + 1+ 10));
+                               char* s = malloc(sizeof(char) * (1 + strlen($2) + 1+ 10));
                                strcpy(s, L_PARENTHESIS);
-                               strcat(s, $1);
+                               strcat(s, $2);
                                strcat(s, R_PARENTHESIS);
                                $$ = s;
                                }
@@ -307,15 +307,19 @@ array_contents: array_initialize
                                } 
               ; 
 function: function_declarations function_definitions { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
-                               strcpy(s, $1);
+                               char* s = malloc(sizeof(char) * (strlen(S_FUNC_DEF) + strlen($1) + strlen($2) + strlen(E_FUNC_DEF) + 10));
+                               strcpy(s, S_FUNC_DEF);
+                               strcat(s, $1);
                                strcat(s, $2);
+                               strcat(s, E_FUNC_DEF);
                                $$ = s;
                                }
         | function_declarations ';' { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + 1+ 10));
-                               strcpy(s, $1);
+                               char* s = malloc(sizeof(char) * (strlen(S_FUNC_DECL) + strlen($1) + strlen(E_FUNC_DECL)+ 1 + 10));
+                               strcpy(s, S_FUNC_DECL);
+                               strcat(s, $1);
                                strcat(s, ";\0");
+                               strcat(s, E_FUNC_DECL);
                                $$ = s;
                                }
         ;
@@ -328,24 +332,20 @@ declarator: '*' IDENT         {
           | IDENT             
           ;
 function_declarations: type declarator '(' parameters ')' { 
-                               char* s = malloc(sizeof(char) * (strlen(S_FUNC_DECL) + strlen($1) + strlen($2) + 1 + strlen($4) + 1 + strlen(E_FUNC_DECL)+ 10));
-                               strcpy(s, S_FUNC_DECL);
-                               strcat(s, $1);
+                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + 1 + strlen($4) + 1 + 10));
+                               strcpy(s, $1);
                                strcat(s, $2);
                                strcat(s, L_BRACKET);
                                strcat(s, $4);
                                strcat(s, R_BRACKET);
-                               strcat(s, E_FUNC_DECL);
                                $$ = s;
                                } 
                      | type declarator '(' ')' { 
-                               char* s = malloc(sizeof(char) * (strlen(S_FUNC_DECL) + strlen($1) + strlen($2) + 1 + 1 + strlen(E_FUNC_DECL)+ 10));
-                               strcpy(s, S_FUNC_DECL);
-                               strcat(s, $1);
+                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + 1 + 1 + 10));
+                               strcpy(s, $1);
                                strcat(s, $2);
                                strcat(s, L_BRACKET);
                                strcat(s, R_BRACKET);
-                               strcat(s, E_FUNC_DECL);
                                $$ = s;
                                } 
                      ;
@@ -403,28 +403,37 @@ literal: INT                        {
        ;
 suffix_expr: expression_with_high_prec
            | suffix_expr INCREMENT  { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, $2);
                                         $$ = s;
                                     }
            | suffix_expr DECREMENT  { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, $2);
                                         $$ = s;
                                     }
            | suffix_expr '(' ')'    { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 2+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 2 + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, L_BRACKET);
                                         strcat(s, R_BRACKET);
                                         $$ = s;
                                     }
            | suffix_expr '(' arguments ')' { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3) + 1+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen($3) + 1 + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, L_BRACKET);
+                                        //strcat(s, "hihi");
                                         strcat(s, $3);
                                         strcat(s, R_BRACKET);
                                         $$ = s;
@@ -435,54 +444,68 @@ suffix_expr: expression_with_high_prec
 arguments: expr                     { 
                                         char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR)+ 10));
                                         strcpy(s, S_EXPR);
+                                        //strcat(s, "here");
                                         strcat(s, $1);
                                         strcat(s, E_EXPR);
+                                        $$ = s;
                                     }
          | expr ',' arguments       { 
-                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen($3)+ 10));
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
                                         strcpy(s, S_EXPR);
                                         strcat(s, $1);
                                         strcat(s, E_EXPR);
                                         strcat(s, ",\0");
+                                        //strcat(s, S_EXPR);
                                         strcat(s, $3);
+                                        //strcat(s, E_EXPR);
                                         $$ = s;
                                     }
          ;
 
 prefix_expr: suffix_expr
            | unary_op prefix_expr   { 
-                                            char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
+                                            char* s = malloc(sizeof(char) * (strlen($1) + strlen(S_EXPR) + strlen($2) + strlen(E_EXPR) + 10));
                                             strcpy(s, $1);
+                                            strcat(s, S_EXPR);
                                             strcat(s, $2);
+                                            strcat(s, E_EXPR);
                                             $$ = s;
                                     }
            | INCREMENT prefix_expr  { 
-                                            char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
+                                            char* s = malloc(sizeof(char) * (strlen($1) + strlen(S_EXPR) + strlen($2) + strlen(E_EXPR) + 10));
                                             strcpy(s, $1);
+                                            strcat(s, S_EXPR);
                                             strcat(s, $2);
+                                            strcat(s, E_EXPR);
                                             $$ = s;
                                     }
            | DECREMENT prefix_expr  { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
-                                        strcpy(s, $1);
-                                        strcat(s, $2);
-                                        $$ = s;
+                                            char* s = malloc(sizeof(char) * (strlen($1) + strlen(S_EXPR) + strlen($2) + strlen(E_EXPR) + 10));
+                                            strcpy(s, $1);
+                                            strcat(s, S_EXPR);
+                                            strcat(s, $2);
+                                            strcat(s, E_EXPR);
+                                            $$ = s;
                                     }
            | '(' type ')' prefix_expr { 
-                                        char* s = malloc(sizeof(char) * (1 + strlen($2) + 1 + strlen($4)+ 10));
+                                        char* s = malloc(sizeof(char) * (1 + strlen($2) + 1 + strlen(S_EXPR) + strlen($4) + strlen(E_EXPR) + 10));
                                         strcpy(s, L_BRACKET);
                                         strcat(s, $2);
                                         strcat(s, R_BRACKET);
+                                        strcat(s, S_EXPR);
                                         strcat(s, $4);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                       }
            | '(' type '*' ')' prefix_expr  { 
-                                        char* s = malloc(sizeof(char) * (1 + strlen($2) + 1 + 1 + strlen($5)+ 10));
+                                        char* s = malloc(sizeof(char) * (1 + strlen($2) + 1 + 1 + strlen(S_EXPR) + strlen($5) + strlen(E_EXPR) + 10));
                                         strcpy(s, L_BRACKET);
                                         strcat(s, $2);
                                         strcat(s, "*\0");
                                         strcat(s, R_BRACKET);
+                                        strcat(s, S_EXPR);
                                         strcat(s, $5);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                     }
            ;
@@ -496,148 +519,229 @@ unary_op: '&'
 //left precedence
 mul_expr: prefix_expr
         | mul_expr '*' prefix_expr  { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, "*\0");
+                                        strcat(s, S_EXPR);
                                         strcat(s, $3);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                     }
         | mul_expr '/' prefix_expr  { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, "/\0");
+                                        strcat(s, S_EXPR);
                                         strcat(s, $3);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                     }
         | mul_expr '%' prefix_expr  { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, "%\0");
+                                        strcat(s, S_EXPR);
                                         strcat(s, $3);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                     }
         ;
 add_sub_expr: mul_expr
         | add_sub_expr '+' mul_expr { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, "+\0");
+                                        strcat(s, S_EXPR);
                                         strcat(s, $3);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                     }
         | add_sub_expr '-' mul_expr { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                        strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
                                         strcat(s, "-\0");
+                                        strcat(s, S_EXPR);
                                         strcat(s, $3);
+                                        strcat(s, E_EXPR);
                                         $$ = s;
                                     }
         ; 
 shift_expr: add_sub_expr  
           | shift_expr RIGHT_SHIFT add_sub_expr { 
-                                                    char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                                                    strcpy(s, $1);
+                                                    char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                                    strcpy(s, S_EXPR);
+                                                    strcat(s, $1);
+                                                    strcat(s, E_EXPR);
                                                     strcat(s, $2);
+                                                    strcat(s, S_EXPR);
                                                     strcat(s, $3);
+                                                    strcat(s, E_EXPR);
                                                     $$ = s;
                                                 }
           | shift_expr LEFT_SHIFT add_sub_expr  { 
-                                                    char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                                                    strcpy(s, $1);
+                                                    char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                                    strcpy(s, S_EXPR);
+                                                    strcat(s, $1);
+                                                    strcat(s, E_EXPR);
                                                     strcat(s, $2);
+                                                    strcat(s, S_EXPR);
                                                     strcat(s, $3);
+                                                    strcat(s, E_EXPR);
                                                     $$ = s;
                                                 }
           ;
 comparison_expr: shift_expr
                | comparison_expr LT shift_expr { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
                | comparison_expr LE shift_expr  { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
+                         }
+               | comparison_expr GT shift_expr  { 
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
                | comparison_expr GE shift_expr  { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
                | comparison_expr EQ shift_expr  { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
                | comparison_expr N_EQ shift_expr { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
                ;
 B_and_expr: comparison_expr
           | B_and_expr '&' comparison_expr { 
-                                                char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                                strcpy(s, $1);
+                                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                                strcpy(s, S_EXPR);
+                                                strcat(s, $1);
+                                                strcat(s, E_EXPR);
                                                 strcat(s, "&\0");
+                                                strcat(s, S_EXPR);
                                                 strcat(s, $3);
+                                                strcat(s, E_EXPR);
                                                 $$ = s;
                                             }
           ;
 B_xor_expr: B_and_expr
           | B_xor_expr '^' B_and_expr   { 
-                                            char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                            strcpy(s, $1);
+                                            char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                            strcpy(s, S_EXPR);
+                                            strcat(s, $1);
+                                            strcat(s, E_EXPR);
                                             strcat(s, "^\0");
+                                            strcat(s, S_EXPR);
                                             strcat(s, $3);
+                                            strcat(s, E_EXPR);
                                             $$ = s;
                                         }
           ;
 B_or_expr: B_xor_expr
          | B_or_expr '|' B_xor_expr     { 
-                                            char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen($3)+ 10));
-                                            strcpy(s, $1);
+                                            char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                            strcpy(s, S_EXPR);
+                                            strcat(s, $1);
+                                            strcat(s, E_EXPR);
                                             strcat(s, "|\0");
+                                            strcat(s, S_EXPR);
                                             strcat(s, $3);
+                                            strcat(s, E_EXPR);
                                             $$ = s;
                                         }
          ;
 L_and_expr: B_or_expr
           | L_and_expr L_AND B_or_expr  { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
           ;
 L_or_expr: L_and_expr
          | L_or_expr L_OR L_and_expr  { 
-                               char* s = malloc(sizeof(char) * (strlen($1) + strlen($2) + strlen($3)+ 10));
-                               strcpy(s, $1);
-                               strcat(s, $2);
-                               strcat(s, $3);
-                               $$ = s;
+                                char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + strlen($2) + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR) + 10));
+                                strcpy(s, S_EXPR);
+                                strcat(s, $1);
+                                strcat(s, E_EXPR);
+                                strcat(s, $2);
+                                strcat(s, S_EXPR);
+                                strcat(s, $3);
+                                strcat(s, E_EXPR);
+                                $$ = s;
                          }
          ;
 //right precedence: '=', assignment
 expr: L_or_expr
     | L_or_expr '=' expr            { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR)+ 10));
-                                        strcpy(s, $1);
-                                        strcat(s, "=\0");
+                                        char* s = malloc(sizeof(char) * (strlen(S_EXPR) + strlen($1) + strlen(E_EXPR) + 1 + strlen(S_EXPR) + strlen($3) + strlen(E_EXPR)+ 10));
                                         strcpy(s, S_EXPR);
+                                        strcat(s, $1);
+                                        strcat(s, E_EXPR);
+                                        strcat(s, "=\0");
+                                        strcat(s, S_EXPR);
                                         strcat(s, $3);
                                         strcat(s, E_EXPR);
                                         $$ = s;
@@ -716,9 +820,9 @@ if_else_stmt: IF '(' expr ')' compound_stmt {
                                         strcat(s, $3);
                                         strcat(s, E_EXPR);
                                         strcat(s, R_BRACKET);
-                                        strcat(s, S_STMT);
+                                        //strcat(s, S_STMT);
                                         strcat(s, $5);
-                                        strcat(s, E_STMT);
+                                        //strcat(s, E_STMT);
                                         $$ = s;
                                     }
             | IF '(' expr ')' compound_stmt ELSE compound_stmt { 
@@ -729,13 +833,13 @@ if_else_stmt: IF '(' expr ')' compound_stmt {
                                         strcat(s, $3);
                                         strcat(s, E_EXPR);
                                         strcat(s, R_BRACKET);
-                                        strcat(s, S_STMT);
+                                        //strcat(s, S_STMT);
                                         strcat(s, $5);
-                                        strcat(s, E_STMT);
+                                        //strcat(s, E_STMT);
                                         strcat(s, $6);
-                                        strcat(s, S_STMT);
+                                        //strcat(s, S_STMT);
                                         strcat(s, $7);
-                                        strcat(s, E_STMT);
+                                        //strcat(s, E_STMT);
                                         $$ = s;
                                     }
             ;
@@ -806,10 +910,18 @@ switch_clause_content: CASE expr ':' statement_list   {
                                         $$ = s;
                                     }
                      ;
-statement_list: statements 
+statement_list: statements  {
+                                        char* s = malloc(sizeof(char) * (strlen(S_STMT) + strlen($1) + strlen(E_STMT)+ 10));
+                                        strcpy(s, S_STMT);
+                                        strcat(s, $1);
+                                        strcat(s, E_STMT);
+                                        $$ = s;
+                                    }
               | statements statement_list   { 
-                                        char* s = malloc(sizeof(char) * (strlen($1) + strlen($2)+ 10));
-                                        strcpy(s, $1);
+                                        char* s = malloc(sizeof(char) * (strlen(S_STMT) + strlen($1) + strlen(E_STMT) + strlen($2)+ 10));
+                                        strcpy(s, S_STMT);
+                                        strcat(s, $1);
+                                        strcat(s, E_STMT);
                                         strcat(s, $2);
                                         $$ = s;
                                     }
@@ -865,13 +977,14 @@ for_content: /* empty */ {$$ = "";}
                                         strcpy(s, S_EXPR);
                                         strcat(s, $1);
                                         strcat(s, E_EXPR);
+                                        $$ = s;
                                     }
            ;
 
 return_stmt: RETURN expr ';'        { 
                                         char* s = malloc(sizeof(char) * (strlen($1) + strlen(S_EXPR) + strlen($2) + strlen(E_EXPR) + 1+ 10));
                                         strcpy(s, $1);
-                                        strcpy(s, S_EXPR);
+                                        strcat(s, S_EXPR);
                                         strcat(s, $2);
                                         strcat(s, E_EXPR);
                                         strcat(s, ";\0");
