@@ -3,7 +3,7 @@
     #include <stdlib.h>
     #include <string.h>
     FILE* codegen;
-    int traceon = 1;
+    int traceon = 0;
     int local_var_offset = 0;
     char* int_to_string(int val){
         int temp = val;
@@ -110,6 +110,7 @@
     void code_gen_func_header(char *functor){
         fprintf(codegen, "%s:\n", functor);
         fprintf(codegen, "  // BEGIN PROLOGUE: codegen is the callee here, so we save callee-saved registers\n");
+        fprintf(codegen, "  addi sp, sp, -52\n");
         fprintf(codegen, "  sw sp, 48(sp)\n");
         fprintf(codegen, "  sw s0, 44(sp)\n");
         fprintf(codegen, "  sw s1, 40(s0)\n");
@@ -162,7 +163,7 @@
 %token <strVal> TYPE_VOID TYPE_INT TYPE_DOUBLE TYPE_FLOAT TYPE_CHAR
 %token <strVal> CONST SIGNED UNSIGNED SHORT LONG
 %token <intVal> INT HIGH LOW
-%token <strVal> IDENT STRING CHAR EXP_NULL 
+%token <strVal> IDENT STRING CHAR EXP_NULL DIGITALWRITE DELAY
 %token <floatVal> FLOAT 
 // operators
 %token <strVal> INCREMENT DECREMENT 
@@ -224,15 +225,20 @@ arrays: IDENT '[' expr ']'   {
                                         int idx = look_up_symbol($1);
                                         table[idx].scope = cur_scope;
                                         table[idx].offset = local_var_offset++;  
-                                        fprintf(codegen, " lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
 
                                      }
       ;
 
 
-function: function_declarations 
+function: function_declarations {                   
+                                                    cur_scope++;
+                                                    local_var_offset = 0;
+                                                    set_scope_and_offset_of_param($1);
+                                                    code_gen_func_header($1);
+                                }
              compound_stmt  {
                 if(traceon)printf("3\n");
                 pop_up_symbol(cur_scope);
@@ -260,36 +266,32 @@ declarator: '*' IDENT         { if(traceon)printf("4\n");
                                 int idx = look_up_symbol($2);
                                 table[idx].scope = cur_scope;
                                 table[idx].offset = local_var_offset++;
-                                fprintf(codegen, " lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
-                                fprintf(codegen, " addi sp, sp, -4\n");
-                                fprintf(codegen, " sw t0, 0(sp)\n");
+                                fprintf(codegen, "  lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
+                                fprintf(codegen, "  addi sp, sp, -4\n");
+                                fprintf(codegen, "  sw t0, 0(sp)\n");
                               }
           | IDENT  '=' expr   { if(traceon)printf("7\n");
                                 $$ = install_symbol($1);
                                 int idx = look_up_symbol($1);
                                 table[idx].scope = cur_scope;
                                 table[idx].offset = local_var_offset++;
-                                fprintf(codegen, " lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
-                                fprintf(codegen, " addi sp, sp, -4\n");
-                                fprintf(codegen, " sw t0, 0(sp)\n");
+                                fprintf(codegen, "  lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
+                                fprintf(codegen, "  addi sp, sp, -4\n");
+                                fprintf(codegen, "  sw t0, 0(sp)\n");
                               }
           ;
 function_declarations: type IDENT '(' parameters ')' { 
                                                     // function may be defined first
                                                     if(traceon)printf("8\n");
                                                     if(look_up_symbol($2) == -1) $$ = install_symbol($2); 
-                                                    cur_scope++;
-                                                    local_var_offset = 0;
-                                                    set_scope_and_offset_of_param($2);
-                                                    code_gen_func_header($2);
+                                                    $$ = $2;
+                                                    
                                                }
                      | type IDENT '(' ')' {
                                                     if(traceon)printf("9\n");
                                                     if(look_up_symbol($2) == -1) $$ = install_symbol($2);
-                                                    cur_scope++;
-                                                    local_var_offset = 0;
-                                                    set_scope_and_offset_of_param($2);
-                                                    code_gen_func_header($2);
+                                                    $$ = $2;
+                                                    
                                                     
                      }
                      ;
@@ -299,15 +301,17 @@ parameters: parameters ',' type declarator  {if(traceon)printf("parameter!! one\
 /*expression*/
 expression_with_high_prec: IDENT    {   if(traceon)printf("10\n");
                                         int idx = look_up_symbol($1);
-                                        fprintf(codegen, " lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
+                                        $$ = $1;
                                     }
     | IDENT '[' expr ']'            {   if(traceon)printf("11\n");
                                         int idx = look_up_symbol($1);
-                                        fprintf(codegen, " lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, %d(s0)\n", table[idx].offset * (-4) - 48);
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
+                                        $$ = $1;
                                     }
     | literal                       {if(traceon)printf("12\n");}
     | '(' expr ')'                  {   if(traceon)printf("13\n");
@@ -315,19 +319,19 @@ expression_with_high_prec: IDENT    {   if(traceon)printf("10\n");
                                     }
     ;
 literal: INT                        {   if(traceon)printf("14\n");
-                                        fprintf(codegen, " li t0, %d\n", $1);
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");  
+                                        fprintf(codegen, "  li a0, %d\n", $1);
+                                        /* fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n"); */ 
                                     }  
        | HIGH                       {   if(traceon)printf("15\n");
-                                        fprintf(codegen, " li t0, %d\n", $1);
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");  
+                                        fprintf(codegen, "  li a1, %d\n", $1);
+                                       /* fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");  */
                                     }
        | LOW                        {   if(traceon)printf("16\n");
-                                        fprintf(codegen, " li t0, %d\n", $1);
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");  
+                                        fprintf(codegen, "  li a1, %d\n", $1);
+                                       /* fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");  */
                                     }
        ;
 suffix_expr: expression_with_high_prec { if(traceon)printf("19\n");
@@ -350,9 +354,9 @@ arguments: expr {if(traceon)printf("22\n");}
 prefix_expr: suffix_expr {if(traceon)printf("24\n");}
            | '&' suffix_expr { if(traceon)printf("25\n");
                 int idx = look_up_symbol($2);
-                fprintf(codegen, " addi t0, sp, %d\n", table[idx].offset * (-4) - 48);
-                fprintf(codegen, " addi sp, sp, -4\n");
-                fprintf(codegen, " sw t0, 0(sp)\n");
+                fprintf(codegen, "  addi t0, sp, %d\n", table[idx].offset * (-4) - 48);
+                fprintf(codegen, "  addi sp, sp, -4\n");
+                fprintf(codegen, "  sw t0, 0(sp)\n");
                 $$ = NULL;
             }
            | '*' suffix_expr {
@@ -366,55 +370,55 @@ prefix_expr: suffix_expr {if(traceon)printf("24\n");}
 //left precedence
 mul_expr: prefix_expr
         | mul_expr '*' prefix_expr  {   if(traceon)printf("28\n");
-                                        fprintf(codegen, " lw t0, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " lw t1, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " mul t0, t0, t1\n");
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  lw t1, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  mul t0, t0, t1\n");
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
                                         $$ = NULL;
                                     }
         | mul_expr '/' prefix_expr  {   if(traceon)printf("29\n");
-                                        fprintf(codegen, " lw t0, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " lw t1, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " div t0, t0, t1\n");
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  lw t1, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  div t0, t0, t1\n");
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
                                         $$ = NULL;
                                     }
         | mul_expr '%' prefix_expr  {   if(traceon)printf("30\n");
-                                        fprintf(codegen, " lw t0, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " lw t1, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " rem t0, t0, t1\n");
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  lw t1, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  rem t0, t0, t1\n");
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
                                         $$ = NULL;
                                     }
         ;
 add_sub_expr: mul_expr
         | add_sub_expr '+' mul_expr {   if(traceon)printf("31\n");
-                                        fprintf(codegen, " lw t0, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " lw t1, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " add t0, t0, t1\n");
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  lw t1, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  add t0, t0, t1\n");
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
                                         $$ = NULL;
                                     }
         | add_sub_expr '-' mul_expr {   if(traceon)printf("32\n");
-                                        fprintf(codegen, " lw t0, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " lw t1, 0(sp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " sub t0, t0, t1\n");
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  lw t1, 0(sp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  sub t0, t0, t1\n");
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
                                         $$ = NULL;
                                     }
         ; 
@@ -423,36 +427,36 @@ comparison_expr:add_sub_expr
                |
                 comparison_expr LT add_sub_expr { 
                                 if(traceon)printf("33\n");
-                                fprintf(codegen, " lw t0, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " lw t1, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " blt t0, t1, L1");
+                                fprintf(codegen, "  lw t0, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  lw t1, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  blt t0, t1, L1");
                          }
                
                | comparison_expr GE add_sub_expr  { 
                                 if(traceon)printf("34\n");
-                                fprintf(codegen, " lw t0, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " lw t1, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " bge t0, t1, L1");
+                                fprintf(codegen, "  lw t0, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  lw t1, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  bge t0, t1, L1");
                          }
                | comparison_expr EQ add_sub_expr  { 
                                 if(traceon)printf("35\n");
-                                fprintf(codegen, " lw t0, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " lw t1, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " beq t0, t1, L1");
+                                fprintf(codegen, "  lw t0, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  lw t1, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  beq t0, t1, L1");
                          }
                | comparison_expr N_EQ add_sub_expr { 
                                 if(traceon)printf("36\n");
-                                fprintf(codegen, " lw t0, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " lw t1, 0(sp)\n");
-                                fprintf(codegen, " addi sp, sp, 4\n");
-                                fprintf(codegen, " bne t0, t1, L1");
+                                fprintf(codegen, "  lw t0, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  lw t1, 0(sp)\n");
+                                fprintf(codegen, "  addi sp, sp, 4\n");
+                                fprintf(codegen, "  bne t0, t1, L1");
                          }
                ;
 
@@ -460,13 +464,13 @@ comparison_expr:add_sub_expr
 expr: comparison_expr
     | comparison_expr '=' expr      { 
                                         if(traceon)printf("37\n");
-                                        fprintf(codegen, " lw t0, 0(fp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " lw t1, 0(fp)\n");
-                                        fprintf(codegen, " addi sp, sp, 4\n");
-                                        fprintf(codegen, " addi t0, t1, 0\n");
-                                        fprintf(codegen, " addi sp, sp, -4\n");
-                                        fprintf(codegen, " sw t0, 0(sp)\n");
+                                        fprintf(codegen, "  lw t0, 0(fp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  lw t1, 0(fp)\n");
+                                        fprintf(codegen, "  addi sp, sp, 4\n");
+                                        fprintf(codegen, "  addi t0, t1, 0\n");
+                                        fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n");
                                         $$ = NULL;
                                     }
     ;
@@ -491,13 +495,36 @@ compound_stmt_content: statements   {
                                         if(traceon)printf("44\n");
                                     }
                      ;
-statements: expr_stmt {if(traceon)printf("46\n");}
+statements: DIGITALWRITE {
+                            fprintf(codegen, "  addi sp, sp, -4\n");
+                            fprintf(codegen, "  sw ra, 0(sp)\n"); 
+                         } '(' expr ',' expr ')' ';' 
+                         { 
+                            if(traceon)printf("digital write\n"); 
+                            fprintf(codegen, "  jal ra, digitalWrite\n");
+                            fprintf(codegen, "  lw ra, 0(sp)\n");
+                            fprintf(codegen, "  addi sp, sp, 4\n");
+                            fprintf(codegen, "\n");
+                        }
+          | DELAY {
+                    fprintf(codegen, "  addi sp, sp, -4\n");
+                    fprintf(codegen, "  sw ra, 0(sp)\n"); 
+                  } '(' expr ')' ';' 
+                  {
+                    if(traceon)printf("delay\n");
+                    fprintf(codegen, "  jal ra, delay\n");
+                    fprintf(codegen, "  lw ra, 0(sp)\n");
+                    fprintf(codegen, "  addi sp, sp, 4\n");
+                    fprintf(codegen, "\n");
+                  }
+          | expr_stmt {if(traceon)printf("46\n");}
           | if_else_stmt {if(traceon)printf("47\n");}  
           | while_stmt   {if(traceon)printf("48\n");}  
           | for_stmt     {if(traceon)printf("49\n");}
           | return_stmt  {if(traceon)printf("50\n");}
           | break_stmt   {if(traceon)printf("51\n");}
           | compound_stmt {if(traceon)printf("52\n");}
+          
           ;
 expr_stmt: expr ';'                { 
                                         if(traceon)printf("45\n");
@@ -536,7 +563,7 @@ break_stmt: BREAK ';'               {
           ;
 %%
 int main(void) {
-    codegen = fopen("codegen", "w");
+    codegen = fopen("codegen.S", "w");
     fprintf(codegen, ".global codegen\n");
     init_symbol_table();
     yyparse();

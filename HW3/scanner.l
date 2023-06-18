@@ -162,6 +162,14 @@ BEGIN 0;}
                                     yylval.strVal = strdup(yytext);
                                     return LONG;
                                 }
+"digitalWrite"                  {
+                                    yylval.strVal = strdup(yytext);
+                                    return DIGITALWRITE;
+                                }
+"delay"                         {
+                                    yylval.strVal = strdup(yytext);
+                                    return DELAY;
+                                }
 
 "NULL"                          {yylval.strVal = "0"; return EXP_NULL;}
 
