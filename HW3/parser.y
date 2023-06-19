@@ -321,17 +321,23 @@ expression_with_high_prec: IDENT    {   if(traceon)printf("10\n");
 literal: INT                        {   if(traceon)printf("14\n");
                                         fprintf(codegen, "  li a0, %d\n", $1);
                                         /* fprintf(codegen, "  addi sp, sp, -4\n");
-                                        fprintf(codegen, "  sw t0, 0(sp)\n"); */ 
+                                        fprintf(codegen, "  sw t0, 0(sp)\n"); */
+                                        fprintf(codegen, "\n");
+                                        
                                     }  
        | HIGH                       {   if(traceon)printf("15\n");
                                         fprintf(codegen, "  li a1, %d\n", $1);
-                                       /* fprintf(codegen, "  addi sp, sp, -4\n");
-                                        fprintf(codegen, "  sw t0, 0(sp)\n");  */
+                                        /* fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n"); */
+                                        fprintf(codegen, "\n");
+                                        
                                     }
        | LOW                        {   if(traceon)printf("16\n");
                                         fprintf(codegen, "  li a1, %d\n", $1);
-                                       /* fprintf(codegen, "  addi sp, sp, -4\n");
-                                        fprintf(codegen, "  sw t0, 0(sp)\n");  */
+                                        /* fprintf(codegen, "  addi sp, sp, -4\n");
+                                        fprintf(codegen, "  sw t0, 0(sp)\n"); */
+                                        fprintf(codegen, "\n");
+                                        
                                     }
        ;
 suffix_expr: expression_with_high_prec { if(traceon)printf("19\n");
@@ -377,6 +383,7 @@ mul_expr: prefix_expr
                                         fprintf(codegen, "  mul t0, t0, t1\n");
                                         fprintf(codegen, "  addi sp, sp, -4\n");
                                         fprintf(codegen, "  sw t0, 0(sp)\n");
+                                        fprintf(codegen, "\n");
                                         $$ = NULL;
                                     }
         | mul_expr '/' prefix_expr  {   if(traceon)printf("29\n");
@@ -387,6 +394,7 @@ mul_expr: prefix_expr
                                         fprintf(codegen, "  div t0, t0, t1\n");
                                         fprintf(codegen, "  addi sp, sp, -4\n");
                                         fprintf(codegen, "  sw t0, 0(sp)\n");
+                                        fprintf(codegen, "\n");
                                         $$ = NULL;
                                     }
         | mul_expr '%' prefix_expr  {   if(traceon)printf("30\n");
@@ -397,6 +405,7 @@ mul_expr: prefix_expr
                                         fprintf(codegen, "  rem t0, t0, t1\n");
                                         fprintf(codegen, "  addi sp, sp, -4\n");
                                         fprintf(codegen, "  sw t0, 0(sp)\n");
+                                        fprintf(codegen, "\n");
                                         $$ = NULL;
                                     }
         ;
